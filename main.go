@@ -8,7 +8,8 @@ import (
 	prompt "github.com/c-bata/go-prompt"
 )
 
-var server *NatsStreaming
+var client *NatsStreamingClient
+var monitor *NatsStreamingMonitor
 
 func livePrefix() (string, bool) {
 	return "", false
@@ -25,16 +26,22 @@ func executor(in string) {
 	blocks := strings.Split(in, " ")
 	switch blocks[0] {
 	case "show":
-		var info string
+		var info []byte
 		switch blocks[1] {
+		case "channel":
+			if len(blocks) < 3 {
+				fmt.Println("Usage: show channel CHANNEL")
+				return
+			}
+			info, err = monitor.GetChannelInfo(blocks[2])
 		case "channels":
-			info, err = server.GetChannelsInfo()
+			info, err = monitor.GetChannelsInfo()
 		case "server":
-			info, err = server.GetServerInfo()
+			info, err = monitor.GetServerInfo()
 		case "store":
-			info, err = server.GetStoreInfo()
+			info, err = monitor.GetStoreInfo()
 		case "clients":
-			info, err = server.GetClientsInfo()
+			info, err = monitor.GetClientsInfo()
 		default:
 			badCmd()
 			return
@@ -42,7 +49,22 @@ func executor(in string) {
 		if err != nil {
 			fmt.Println(err)
 		} else {
-			fmt.Println(info)
+			fmt.Println(string(info))
+		}
+		return
+	case "pub":
+		if len(blocks) != 3 {
+			fmt.Println("Usage: pub CHANNEL MSG")
+			return
+		}
+		channelName := blocks[1]
+		//TODO：支持带空格的 message
+		msg := blocks[2]
+		err := client.Publish(channelName, []byte(msg))
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Println("Success!")
 		}
 		return
 	case "exit":
@@ -57,16 +79,35 @@ func main() {
 	var port = 4222
 	var httpPort = 8222
 	var host = "localhost"
-	server = &NatsStreaming{
+	var clientID = ""
+	var clusterID = ""
+	var err error
+
+	monitor = &NatsStreamingMonitor{
 		Host:     host,
-		Port:     port,
 		HttpPort: httpPort,
 	}
+	client = &NatsStreamingClient{
+		Host: host,
+		Port: port,
+	}
+	if clientID == "" {
+		clientID = generateClientID()
+	}
+	client.ID = clientID
+	if clusterID == "" {
+		clusterID, err = monitor.GetClusterID()
+		if err != nil || clusterID == "" {
+			fmt.Printf("Fail to Get clusterID,please make sure server enable monitor or set cluster id manual:%s\n", err)
+			return
+		}
+	}
+	client.ClusterID = clusterID
 
 	p := prompt.New(
 		executor,
 		completer,
-		prompt.OptionPrefix("[nats-streaming] "+server.Host+" > "),
+		prompt.OptionPrefix("[nats-streaming] "+host+" > "),
 		prompt.OptionLivePrefix(livePrefix),
 		prompt.OptionTitle("nats-streaming-cli"),
 	)

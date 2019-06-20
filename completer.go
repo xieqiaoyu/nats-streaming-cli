@@ -7,10 +7,12 @@ import (
 
 var suggestions = []prompt.Suggest{
 	{Text: "show", Description: "show server mesage"},
+	{Text: "pub", Description: "publish msg to a channel"},
 	{Text: "exit", Description: "Exit cli"},
 }
 
 var cmdShowSuggestions = []prompt.Suggest{
+	{Text: "channel", Description: "show one channel info"},
 	{Text: "channels", Description: "show channels info"},
 	{Text: "server", Description: "show server info"},
 	{Text: "store", Description: "show store info"},
