@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	stan "github.com/nats-io/stan.go"
+	"time"
 )
 
 type NatsStreamingClient struct {
@@ -13,21 +15,121 @@ type NatsStreamingClient struct {
 }
 
 func generateClientID() string {
-	//TODO: 采用一个随机字符串防止冲突
+	//FIXME: use a random string to avoid conflict
 	idSuffix := "foo"
 	return "nats-streaming_cli_" + idSuffix
 }
 
-func (n *NatsStreamingClient) Publish(channelName string, content []byte) error {
+func (n *NatsStreamingClient) getConn() (stan.Conn, error) {
 	if n.conn == nil {
 		opts := []stan.Option{}
 		conn, err := stan.Connect(n.ClusterID, n.ID, opts...)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		n.conn = conn
 	}
-	client := n.conn
-	err := client.Publish(channelName, content)
-	return err
+	return n.conn, nil
+
+}
+
+func (n *NatsStreamingClient) Publish(channelName string, content []byte) error {
+	client, err := n.getConn()
+	if err != nil {
+		return err
+	}
+	return client.Publish(channelName, content)
+}
+
+func (n *NatsStreamingClient) Close() {
+	if n.conn != nil {
+		n.Close()
+	}
+}
+
+func (n *NatsStreamingClient) List(channelName string, startAt, limit uint64) ([]string, error) {
+	endOfDay, err := n.GetEndOfDayMsg(channelName)
+	if err != nil {
+		return nil, err
+	}
+	sequence := endOfDay.Sequence
+
+	client, err := n.getConn()
+	if err != nil {
+		return nil, err
+	}
+	subOpts := []stan.SubscriptionOption{
+		stan.DeliverAllAvailable(),
+	}
+
+	if startAt > 0 {
+		subOpts = append(subOpts, stan.StartAtSequence(startAt))
+	}
+
+	msgChan := make(chan *stan.Msg, 10)
+	var stop bool
+
+	sub, err := client.Subscribe(channelName, func(msg *stan.Msg) {
+		if !stop {
+			msgChan <- msg
+		}
+	}, subOpts...)
+
+	if err != nil {
+		return nil, err
+	}
+	defer sub.Close()
+
+	result := []string{}
+	var count uint64
+	for {
+		m := <-msgChan
+		result = append(result, string(m.Data))
+		if m.Sequence == sequence {
+			stop = true
+			break
+		}
+		count++
+		if count >= limit {
+			stop = true
+			break
+		}
+	}
+	close(msgChan)
+	return result, nil
+}
+
+func (n *NatsStreamingClient) GetEndOfDayMsg(channelName string) (*stan.Msg, error) {
+	client, err := n.getConn()
+	if err != nil {
+		return nil, err
+	}
+	subOpts := []stan.SubscriptionOption{
+		stan.StartWithLastReceived(),
+		stan.DeliverAllAvailable(),
+	}
+	msgChan := make(chan *stan.Msg, 1)
+	var gocha bool
+
+	sub, err := client.Subscribe(channelName, func(msg *stan.Msg) {
+		if !gocha {
+			msgChan <- msg
+			gocha = true
+		}
+	}, subOpts...)
+
+	if err != nil {
+		return nil, err
+	}
+	defer sub.Close()
+
+	var msg *stan.Msg
+	select {
+	case m := <-msgChan:
+		msg = m
+	case <-time.After(2 * time.Second):
+		return nil, fmt.Errorf("Get msg time out,maybe the channel is Empty")
+	}
+	close(msgChan)
+	return msg, nil
 }

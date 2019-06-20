@@ -58,7 +58,7 @@ func executor(in string) {
 			return
 		}
 		channelName := blocks[1]
-		//TODO：支持带空格的 message
+		//TODO support message with space
 		msg := blocks[2]
 		err := client.Publish(channelName, []byte(msg))
 		if err != nil {
@@ -67,6 +67,27 @@ func executor(in string) {
 			fmt.Println("Success!")
 		}
 		return
+	case "list":
+		if len(blocks) != 2 {
+			fmt.Println("Usage: list CHANNEL")
+			return
+		}
+		channelName := blocks[1]
+		data, err := client.List(channelName, 0, 0)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Printf("%s\n", strings.Join(data, "\n"))
+		}
+		return
+	case "test":
+		//msg, err := client.GetEndOfDayMsg("test.temp")
+		//if err != nil {
+		//	fmt.Println(err)
+		//} else {
+		//	fmt.Printf("%s,%d", string(msg.Data), msg.Sequence)
+		//}
+		//return
 	case "exit":
 		os.Exit(0)
 	default:

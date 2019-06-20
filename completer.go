@@ -8,6 +8,7 @@ import (
 var suggestions = []prompt.Suggest{
 	{Text: "show", Description: "show server mesage"},
 	{Text: "pub", Description: "publish msg to a channel"},
+	{Text: "list", Description: "list message in a channel"},
 	{Text: "exit", Description: "Exit cli"},
 }
 
