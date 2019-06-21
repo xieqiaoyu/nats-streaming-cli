@@ -3,7 +3,15 @@ package client
 import (
 	"fmt"
 	stan "github.com/nats-io/stan.go"
+	"math/rand"
+	"strings"
 	"time"
+)
+
+const (
+	letterBytes   = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
+	letterIdxBits = 6
+	letterIdxMask = 1<<letterIdxBits - 1
 )
 
 type NatsStreamingClient struct {
@@ -15,8 +23,19 @@ type NatsStreamingClient struct {
 }
 
 func GenerateClientID() string {
-	//FIXME: use a random string to avoid conflict
-	idSuffix := "foo"
+	// generate random string
+	// reference  https://stackoverflow.com/questions/22892120/how-to-generate-a-random-string-of-a-fixed-length-in-go
+	src := rand.NewSource(time.Now().UnixNano())
+	sb := strings.Builder{}
+	sb.Grow(10)
+	dice := src.Int63()
+	for i := 0; i <= 9; i++ {
+		idx := int(dice & letterIdxMask)
+		sb.WriteByte(letterBytes[idx])
+		dice >>= letterIdxBits
+	}
+
+	idSuffix := sb.String()
 	return "nats-streaming_cli_" + idSuffix
 }
 
