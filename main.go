@@ -2,98 +2,26 @@ package main
 
 import (
 	"fmt"
-	"os"
+	nclient "github.com/xieqiaoyu/nats-streaming-cli/client"
 	"strings"
 
 	prompt "github.com/c-bata/go-prompt"
 )
 
-var client *NatsStreamingClient
-var monitor *NatsStreamingMonitor
+var (
+	client  *nclient.NatsStreamingClient
+	monitor *nclient.NatsStreamingMonitor
+	rootCmd = RootCmd()
+)
 
 func livePrefix() (string, bool) {
 	return "", false
 }
 
-func badCmd() {
-	fmt.Println("Sorry, I don't understand.")
-}
-
 func executor(in string) {
-	var err error
 	in = strings.TrimSpace(in)
-
 	blocks := strings.Split(in, " ")
-	switch blocks[0] {
-	case "show":
-		var info []byte
-		switch blocks[1] {
-		case "channel":
-			if len(blocks) < 3 {
-				fmt.Println("Usage: show channel CHANNEL")
-				return
-			}
-			info, err = monitor.GetChannelInfo(blocks[2])
-		case "channels":
-			info, err = monitor.GetChannelsInfo()
-		case "server":
-			info, err = monitor.GetServerInfo()
-		case "store":
-			info, err = monitor.GetStoreInfo()
-		case "clients":
-			info, err = monitor.GetClientsInfo()
-		default:
-			badCmd()
-			return
-		}
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Println(string(info))
-		}
-		return
-	case "pub":
-		if len(blocks) != 3 {
-			fmt.Println("Usage: pub CHANNEL MSG")
-			return
-		}
-		channelName := blocks[1]
-		//TODO support message with space
-		msg := blocks[2]
-		err := client.Publish(channelName, []byte(msg))
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Println("Success!")
-		}
-		return
-	case "list":
-		if len(blocks) != 2 {
-			fmt.Println("Usage: list CHANNEL")
-			return
-		}
-		channelName := blocks[1]
-		data, err := client.List(channelName, 0, 0)
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Printf("%s\n", strings.Join(data, "\n"))
-		}
-		return
-	case "test":
-		//msg, err := client.GetEndOfDayMsg("test.temp")
-		//if err != nil {
-		//	fmt.Println(err)
-		//} else {
-		//	fmt.Printf("%s,%d", string(msg.Data), msg.Sequence)
-		//}
-		//return
-	case "exit":
-		os.Exit(0)
-	default:
-	}
-	badCmd()
-	return
+	rootCmd.Resolve(blocks...)
 }
 
 func main() {
@@ -104,16 +32,16 @@ func main() {
 	var clusterID = ""
 	var err error
 
-	monitor = &NatsStreamingMonitor{
+	monitor = &nclient.NatsStreamingMonitor{
 		Host:     host,
 		HttpPort: httpPort,
 	}
-	client = &NatsStreamingClient{
+	client = &nclient.NatsStreamingClient{
 		Host: host,
 		Port: port,
 	}
 	if clientID == "" {
-		clientID = generateClientID()
+		clientID = nclient.GenerateClientID()
 	}
 	client.ID = clientID
 	if clusterID == "" {

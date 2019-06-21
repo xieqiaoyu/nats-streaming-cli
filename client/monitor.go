@@ -1,4 +1,4 @@
-package main
+package client
 
 import (
 	"encoding/json"
@@ -57,15 +57,28 @@ func (n *NatsStreamingMonitor) fetchMonitorEndpoint(endpoint string, params ...[
 	return result, nil
 }
 
-func (n *NatsStreamingMonitor) GetChannelInfo(channelName string) ([]byte, error) {
+func (n *NatsStreamingMonitor) GetChannelInfo(channelName string, subs bool) ([]byte, error) {
 	params := [][]string{
 		[]string{"channel", channelName},
+	}
+	if subs {
+		params = append(params, []string{"subs", "1"})
 	}
 	return n.fetchMonitorEndpoint("channelsz", params...)
 }
 
-func (n *NatsStreamingMonitor) GetChannelsInfo() ([]byte, error) {
-	return n.fetchMonitorEndpoint("channelsz")
+func (n *NatsStreamingMonitor) GetChannelsInfo(subs bool, offset, limit uint64) ([]byte, error) {
+	params := [][]string{}
+	if subs {
+		params = append(params, []string{"subs", "1"})
+	}
+	if offset > 0 {
+		params = append(params, []string{"offset", strconv.FormatUint(offset, 10)})
+	}
+	if limit > 0 {
+		params = append(params, []string{"limit", strconv.FormatUint(limit, 10)})
+	}
+	return n.fetchMonitorEndpoint("channelsz", params...)
 }
 
 func (n *NatsStreamingMonitor) GetServerInfo() ([]byte, error) {
@@ -76,8 +89,28 @@ func (n *NatsStreamingMonitor) GetStoreInfo() ([]byte, error) {
 	return n.fetchMonitorEndpoint("storez")
 }
 
-func (n *NatsStreamingMonitor) GetClientsInfo() ([]byte, error) {
-	return n.fetchMonitorEndpoint("clientsz")
+func (n *NatsStreamingMonitor) GetClientInfo(clientName string, subs bool) ([]byte, error) {
+	params := [][]string{
+		[]string{"client", clientName},
+	}
+	if subs {
+		params = append(params, []string{"subs", "1"})
+	}
+	return n.fetchMonitorEndpoint("clientsz", params...)
+}
+
+func (n *NatsStreamingMonitor) GetClientsInfo(subs bool, offset, limit uint64) ([]byte, error) {
+	params := [][]string{}
+	if subs {
+		params = append(params, []string{"subs", "1"})
+	}
+	if offset > 0 {
+		params = append(params, []string{"offset", strconv.FormatUint(offset, 10)})
+	}
+	if limit > 0 {
+		params = append(params, []string{"limit", strconv.FormatUint(limit, 10)})
+	}
+	return n.fetchMonitorEndpoint("clientsz", params...)
 }
 
 type Serverz struct {

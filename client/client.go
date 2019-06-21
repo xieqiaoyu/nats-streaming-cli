@@ -1,4 +1,4 @@
-package main
+package client
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ type NatsStreamingClient struct {
 	conn      stan.Conn
 }
 
-func generateClientID() string {
+func GenerateClientID() string {
 	//FIXME: use a random string to avoid conflict
 	idSuffix := "foo"
 	return "nats-streaming_cli_" + idSuffix
@@ -67,6 +67,7 @@ func (n *NatsStreamingClient) List(channelName string, startAt, limit uint64) ([
 	}
 
 	msgChan := make(chan *stan.Msg, 10)
+	defer close(msgChan)
 	var stop bool
 
 	sub, err := client.Subscribe(channelName, func(msg *stan.Msg) {
@@ -89,13 +90,14 @@ func (n *NatsStreamingClient) List(channelName string, startAt, limit uint64) ([
 			stop = true
 			break
 		}
-		count++
-		if count >= limit {
-			stop = true
-			break
+		if limit > 0 {
+			count++
+			if count >= limit {
+				stop = true
+				break
+			}
 		}
 	}
-	close(msgChan)
 	return result, nil
 }
 
@@ -106,9 +108,9 @@ func (n *NatsStreamingClient) GetEndOfDayMsg(channelName string) (*stan.Msg, err
 	}
 	subOpts := []stan.SubscriptionOption{
 		stan.StartWithLastReceived(),
-		stan.DeliverAllAvailable(),
 	}
 	msgChan := make(chan *stan.Msg, 1)
+	defer close(msgChan)
 	var gocha bool
 
 	sub, err := client.Subscribe(channelName, func(msg *stan.Msg) {
@@ -130,6 +132,5 @@ func (n *NatsStreamingClient) GetEndOfDayMsg(channelName string) (*stan.Msg, err
 	case <-time.After(2 * time.Second):
 		return nil, fmt.Errorf("Get msg time out,maybe the channel is Empty")
 	}
-	close(msgChan)
 	return msg, nil
 }
