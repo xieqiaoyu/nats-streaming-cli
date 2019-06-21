@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"fmt"
@@ -7,13 +7,20 @@ import (
 )
 
 func RootCmd() *cmd.SubCmdResolver {
-	return cmd.NewSubCmdResolver(cmd.CmdMap{
+	cmdMap := cmd.CmdMap{
 		"show": ShowCmd(),
 		"pub":  PubCmd,
 		"list": ListCmd,
 		"test": TestCmd,
 		"exit": ExitCmd,
-	})
+	}
+	suggestions := cmd.Suggest{
+		"show": "show server mesage",
+		"pub":  "publish msg to a channel",
+		"list": "list message in a channel",
+		"exit": "Exit cli",
+	}
+	return cmd.NewSubCmdResolver(cmdMap, suggestions)
 }
 
 func ExitCmd(t ...string) {

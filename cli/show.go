@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"fmt"
@@ -6,13 +6,21 @@ import (
 )
 
 func ShowCmd() *cmd.SubCmdResolver {
-	return cmd.NewSubCmdResolver(cmd.CmdMap{
+	cmdMap := cmd.CmdMap{
 		"channel":  ShowChannelCmd,
 		"channels": ShowChannelsCmd,
 		"server":   ShowServerCmd,
 		"store":    ShowStoreCmd,
 		"clients":  ShowClientsCmd,
-	})
+	}
+	suggestions := cmd.Suggest{
+		"channel":  "show one channel info",
+		"channels": "show channels info",
+		"server":   "show server info",
+		"store":    "show store info",
+		"clients":  "show clients info",
+	}
+	return cmd.NewSubCmdResolver(cmdMap, suggestions)
 }
 
 func ShowChannelCmd(t ...string) {

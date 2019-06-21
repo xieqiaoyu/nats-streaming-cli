@@ -2,11 +2,14 @@ package cmd
 
 import (
 	"fmt"
+	prompt "github.com/c-bata/go-prompt"
 )
 
 type Resolver interface {
 	Resolve(...string)
 }
+
+type Suggest map[string]string
 
 type CmdMap map[string]interface{}
 
@@ -33,7 +36,8 @@ func fakeCmd(name string) Cmd {
 }
 
 type SubCmdResolver struct {
-	cmds map[string]Resolver
+	cmds        map[string]Resolver
+	suggestions []prompt.Suggest
 }
 
 func (r *SubCmdResolver) Resolve(token ...string) {
@@ -51,7 +55,25 @@ func (r *SubCmdResolver) Resolve(token ...string) {
 	return
 }
 
-func NewSubCmdResolver(cmdMap CmdMap) *SubCmdResolver {
+func (r *SubCmdResolver) Complete(t ...string) []prompt.Suggest {
+	tlen := len(t)
+	if tlen == 1 {
+		if t[0] == "" {
+			return []prompt.Suggest{}
+		}
+		return prompt.FilterHasPrefix(r.suggestions, t[0], true)
+	} else if tlen > 1 {
+		cmd, found := r.cmds[t[0]]
+		if found {
+			if completer, ok := cmd.(Completer); ok {
+				return completer.Complete(t[1:]...)
+			}
+		}
+	}
+	return []prompt.Suggest{}
+}
+
+func NewSubCmdResolver(cmdMap CmdMap, suggests Suggest) *SubCmdResolver {
 	subcmds := map[string]Resolver{}
 	for name, v := range cmdMap {
 		var resolver Resolver
@@ -67,8 +89,16 @@ func NewSubCmdResolver(cmdMap CmdMap) *SubCmdResolver {
 		subcmds[name] = resolver
 	}
 
+	suggestions := []prompt.Suggest{}
+	for name, descr := range suggests {
+		suggestions = append(suggestions, prompt.Suggest{
+			Text:        name,
+			Description: descr,
+		})
+	}
 	subCmdResolver := &SubCmdResolver{
-		cmds: subcmds,
+		cmds:        subcmds,
+		suggestions: suggestions,
 	}
 	return subCmdResolver
 }
