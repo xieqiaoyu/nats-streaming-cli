@@ -1,0 +1,7 @@
+#! /usr/bin/env sh
+set -ex
+tag="$(git describe --tags|xargs)"
+
+moduleName="github.com/xieqiaoyu/nats-streaming-cli"
+
+CGO_ENABLED=0 go build -ldflags "-X '${moduleName}/metadata.Version=${tag}' -s -w" -a -o nats-streaming-cli .
