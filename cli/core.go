@@ -5,6 +5,7 @@ import (
 	"fmt"
 	prompt "github.com/c-bata/go-prompt"
 	nclient "github.com/xieqiaoyu/nats-streaming-cli/client"
+	"github.com/xieqiaoyu/nats-streaming-cli/metadata"
 	"os"
 	"strings"
 )
@@ -42,6 +43,7 @@ Options:
       -m   --http_port <int>         set http monitoring port (default: 8222)
       -cid --cluster_id <string>     set the server cluster ID, if not set, we will try to get cluster id from server monitor endpoint
            --client_id  <string>     specific client id cli use ,if not set, we will use a random client id
+      -v   --version                 show version
 `
 
 func usage() {
@@ -67,9 +69,18 @@ func Run() {
 
 	fs.StringVar(&clusterID, "cid", "", "")
 	fs.StringVar(&clusterID, "cluster_id", "", "")
+
+	var showVersion bool
+	fs.BoolVar(&showVersion, "v", false, "")
+	fs.BoolVar(&showVersion, "version", false, "")
+
 	fs.Parse(os.Args[1:])
 
 	var err error
+	if showVersion {
+		fmt.Println(metadata.GetVersionString())
+		return
+	}
 
 	monitor = &nclient.NatsStreamingMonitor{
 		Host:     host,
