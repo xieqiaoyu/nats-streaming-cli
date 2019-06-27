@@ -26,7 +26,7 @@ func (c CmdWithParam) Resolve(t ...string) {
 }
 
 func badCmd() {
-	fmt.Println("Sorry, I don't understand.")
+	fmt.Println("Unknown command")
 }
 
 func fakeCmd(name string) Cmd {

@@ -47,7 +47,7 @@ Options:
 `
 
 func usage() {
-	fmt.Printf("%s\n", usageStr)
+	fmt.Println(usageStr)
 	os.Exit(0)
 }
 
