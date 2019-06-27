@@ -4,4 +4,16 @@ tag="$(git describe --tags|xargs)"
 
 moduleName="github.com/xieqiaoyu/nats-streaming-cli"
 
-CGO_ENABLED=0 go build -ldflags "-X '${moduleName}/metadata.Version=${tag}' -s -w" -a -o nats-streaming-cli .
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+  BUILDOS=linux
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+  BUILDOS=darwin
+else
+  echo "OS type not support for now, Need manual build"
+  exit
+fi
+
+
+BUILDARCH=amd64
+
+CGO_ENABLED=0 GOOS=${BUILDOS} GOARCH=${BUILDARCH} go build -ldflags "-s -w -X '${moduleName}/metadata.Version=${tag}' -X '${moduleName}/metadata.OS=${BUILDOS}' -X '${moduleName}/metadata.ARCH=${BUILDARCH}'" -a -o pkg/nats-streaming-cli .
