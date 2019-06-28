@@ -6,6 +6,6 @@ RUN CGO_ENABLED=0 GO111MODULE=on GOOS=linux   GOARCH=amd64 go build -a -ldflags 
 
 
 FROM scratch
-#TODO: COPY CA
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /gomod/pkg/nats-streaming-cli /
 ENTRYPOINT ["/nats-streaming-cli"]
