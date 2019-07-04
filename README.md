@@ -1,4 +1,8 @@
 # Nats-streaming Cli
+
+[![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/apeirophobia/nats-streaming-cli.svg)](https://hub.docker.com/r/apeirophobia/nats-streaming-cli)
+
+
 An interactive command line tool for nats-streaming server
 
 Make it easy to monitor and publish message to a nats-streaming server in development
