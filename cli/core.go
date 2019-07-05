@@ -51,6 +51,7 @@ func usage() {
 	os.Exit(0)
 }
 
+//Run cli entry function
 func Run() {
 	fs := flag.NewFlagSet("nats-streaming-cli", flag.ExitOnError)
 	fs.Usage = usage
@@ -84,7 +85,7 @@ func Run() {
 
 	monitor = &nclient.NatsStreamingMonitor{
 		Host:     host,
-		HttpPort: int(httpPort),
+		HTTPPort: int(httpPort),
 	}
 	client = &nclient.NatsStreamingClient{
 		Host: host,

@@ -14,6 +14,7 @@ const (
 	letterIdxMask = 1<<letterIdxBits - 1
 )
 
+//NatsStreamingClient client access nats-streaming server service
 type NatsStreamingClient struct {
 	Host      string
 	Port      int
@@ -22,6 +23,7 @@ type NatsStreamingClient struct {
 	conn      stan.Conn
 }
 
+//GenerateClientID generate a random string client id
 func GenerateClientID() string {
 	// generate random string
 	// reference  https://stackoverflow.com/questions/22892120/how-to-generate-a-random-string-of-a-fixed-length-in-go
@@ -52,6 +54,7 @@ func (n *NatsStreamingClient) getConn() (stan.Conn, error) {
 
 }
 
+//Publish public a message to a channel
 func (n *NatsStreamingClient) Publish(channelName string, content []byte) error {
 	client, err := n.getConn()
 	if err != nil {
@@ -60,12 +63,14 @@ func (n *NatsStreamingClient) Publish(channelName string, content []byte) error 
 	return client.Publish(channelName, content)
 }
 
+//Close close the client
 func (n *NatsStreamingClient) Close() {
 	if n.conn != nil {
 		n.Close()
 	}
 }
 
+//List list message in a channel
 func (n *NatsStreamingClient) List(channelName string, startAt, limit uint64) ([]string, error) {
 	endOfDay, err := n.GetEndOfDayMsg(channelName)
 	if err != nil {
@@ -120,6 +125,7 @@ func (n *NatsStreamingClient) List(channelName string, startAt, limit uint64) ([
 	return result, nil
 }
 
+//GetEndOfDayMsg get end of day message of a channel
 func (n *NatsStreamingClient) GetEndOfDayMsg(channelName string) (*stan.Msg, error) {
 	client, err := n.getConn()
 	if err != nil {

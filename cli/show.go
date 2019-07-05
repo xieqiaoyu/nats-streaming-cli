@@ -5,8 +5,9 @@ import (
 	"github.com/xieqiaoyu/nats-streaming-cli/cmd"
 )
 
+//ShowCmd cmd "show" action
 func ShowCmd() *cmd.SubCmdResolver {
-	cmdMap := cmd.CmdMap{
+	cmdMap := cmd.CommandMap{
 		"channel":  ShowChannelCmd,
 		"channels": ShowChannelsCmd,
 		"server":   ShowServerCmd,
@@ -23,6 +24,7 @@ func ShowCmd() *cmd.SubCmdResolver {
 	return cmd.NewSubCmdResolver(cmdMap, suggestions)
 }
 
+//ShowChannelCmd "show channel"
 func ShowChannelCmd(t ...string) {
 	if len(t) < 1 {
 		fmt.Println("Usage: show channel CHANNEL")
@@ -36,6 +38,7 @@ func ShowChannelCmd(t ...string) {
 	}
 }
 
+//ShowChannelsCmd "show channels"
 func ShowChannelsCmd(t ...string) {
 	info, err := monitor.GetChannelsInfo(false, 0, 0)
 	if err != nil {
@@ -45,6 +48,7 @@ func ShowChannelsCmd(t ...string) {
 	}
 }
 
+//ShowServerCmd "show server"
 func ShowServerCmd(t ...string) {
 	info, err := monitor.GetServerInfo()
 	if err != nil {
@@ -54,6 +58,7 @@ func ShowServerCmd(t ...string) {
 	}
 }
 
+//ShowStoreCmd "show store"
 func ShowStoreCmd(t ...string) {
 	info, err := monitor.GetStoreInfo()
 	if err != nil {
@@ -64,6 +69,7 @@ func ShowStoreCmd(t ...string) {
 
 }
 
+//ShowClientsCmd "show client"
 func ShowClientsCmd(t ...string) {
 	info, err := monitor.GetClientsInfo(false, 0, 0)
 	if err != nil {

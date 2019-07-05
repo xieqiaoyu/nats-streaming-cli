@@ -10,23 +10,24 @@ import (
 	"strconv"
 )
 
+//NatsStreamingMonitor client to access nats-streaming http monitor service
 type NatsStreamingMonitor struct {
 	Host      string
-	HttpPort  int
-	HttpsPort int
-	UseHttps  bool
+	HTTPPort  int
+	HTTPSPort int
+	UseHTTPS  bool
 }
 
 func (n *NatsStreamingMonitor) fetchMonitorEndpoint(endpoint string, params ...[]string) ([]byte, error) {
 	callURL := url.URL{
 		Path: path.Join("streaming", endpoint),
 	}
-	if n.UseHttps {
+	if n.UseHTTPS {
 		callURL.Scheme = "https"
-		callURL.Host = net.JoinHostPort(n.Host, strconv.Itoa(n.HttpsPort))
+		callURL.Host = net.JoinHostPort(n.Host, strconv.Itoa(n.HTTPSPort))
 	} else {
 		callURL.Scheme = "http"
-		callURL.Host = net.JoinHostPort(n.Host, strconv.Itoa(n.HttpPort))
+		callURL.Host = net.JoinHostPort(n.Host, strconv.Itoa(n.HTTPPort))
 	}
 	if len(params) > 0 {
 		query := url.Values{}
@@ -57,9 +58,10 @@ func (n *NatsStreamingMonitor) fetchMonitorEndpoint(endpoint string, params ...[
 	return result, nil
 }
 
+//GetChannelInfo get the channel info
 func (n *NatsStreamingMonitor) GetChannelInfo(channelName string, subs bool) ([]byte, error) {
 	params := [][]string{
-		[]string{"channel", channelName},
+		{"channel", channelName},
 	}
 	if subs {
 		params = append(params, []string{"subs", "1"})
@@ -67,6 +69,7 @@ func (n *NatsStreamingMonitor) GetChannelInfo(channelName string, subs bool) ([]
 	return n.fetchMonitorEndpoint("channelsz", params...)
 }
 
+//GetChannelsInfo get batch channels info
 func (n *NatsStreamingMonitor) GetChannelsInfo(subs bool, offset, limit uint64) ([]byte, error) {
 	params := [][]string{}
 	if subs {
@@ -81,17 +84,20 @@ func (n *NatsStreamingMonitor) GetChannelsInfo(subs bool, offset, limit uint64) 
 	return n.fetchMonitorEndpoint("channelsz", params...)
 }
 
+//GetServerInfo get server info
 func (n *NatsStreamingMonitor) GetServerInfo() ([]byte, error) {
 	return n.fetchMonitorEndpoint("serverz")
 }
 
+//GetStoreInfo get store info
 func (n *NatsStreamingMonitor) GetStoreInfo() ([]byte, error) {
 	return n.fetchMonitorEndpoint("storez")
 }
 
+//GetClientInfo get info of a client
 func (n *NatsStreamingMonitor) GetClientInfo(clientName string, subs bool) ([]byte, error) {
 	params := [][]string{
-		[]string{"client", clientName},
+		{"client", clientName},
 	}
 	if subs {
 		params = append(params, []string{"subs", "1"})
@@ -99,6 +105,7 @@ func (n *NatsStreamingMonitor) GetClientInfo(clientName string, subs bool) ([]by
 	return n.fetchMonitorEndpoint("clientsz", params...)
 }
 
+//GetClientsInfo get batch client info
 func (n *NatsStreamingMonitor) GetClientsInfo(subs bool, offset, limit uint64) ([]byte, error) {
 	params := [][]string{}
 	if subs {
@@ -113,6 +120,7 @@ func (n *NatsStreamingMonitor) GetClientsInfo(subs bool, offset, limit uint64) (
 	return n.fetchMonitorEndpoint("clientsz", params...)
 }
 
+//Serverz struct of serverz endpoint return data
 type Serverz struct {
 	ClusterID     string `json:"cluster_id"`
 	State         string `json:"state"`
@@ -123,6 +131,7 @@ type Serverz struct {
 	Subscriptions uint32 `json:"subscriptions"`
 }
 
+//GetClusterID fetch cluster from nats-streaming server
 func (n *NatsStreamingMonitor) GetClusterID() (string, error) {
 	serverInfo, err := n.GetServerInfo()
 	if err != nil {

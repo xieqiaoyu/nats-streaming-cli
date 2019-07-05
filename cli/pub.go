@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+//PubCmd cmd "pub" action
 func PubCmd(t ...string) {
 	if len(t) < 2 {
 		fmt.Println("Usage: pub CHANNEL MESSAGE")

@@ -6,8 +6,9 @@ import (
 	"os"
 )
 
+//RootCmd bast cmd entry point
 func RootCmd() *cmd.SubCmdResolver {
-	cmdMap := cmd.CmdMap{
+	cmdMap := cmd.CommandMap{
 		"show": ShowCmd(),
 		"pub":  PubCmd,
 		"list": ListCmd,
@@ -26,10 +27,12 @@ func RootCmd() *cmd.SubCmdResolver {
 	return cmd.NewSubCmdResolver(cmdMap, suggestions)
 }
 
+//ExitCmd action Exit
 func ExitCmd(t ...string) {
 	os.Exit(0)
 }
 
+//TestCmd a hidden cmd test
 func TestCmd() {
 	fmt.Println("test is a command for development test")
 }
@@ -51,6 +54,7 @@ help                                print this help message
 exit                                exit
 `
 
+//HelpCmd print help message
 func HelpCmd() {
 	fmt.Println(helpStr)
 }

@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+//ListCmd  handel cmd "list"
 func ListCmd(t ...string) {
 	var err error
 	var start, limit uint64
