@@ -1,5 +1,6 @@
 # Nats-streaming Cli
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/xieqiaoyu/nats-streaming-cli)](https://goreportcard.com/report/github.com/xieqiaoyu/nats-streaming-cli)
 [![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/apeirophobia/nats-streaming-cli.svg)](https://hub.docker.com/r/apeirophobia/nats-streaming-cli)
 
 
