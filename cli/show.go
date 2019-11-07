@@ -2,7 +2,7 @@ package cli
 
 import (
 	"fmt"
-	"github.com/xieqiaoyu/nats-streaming-cli/cmd"
+	cmd "github.com/xieqiaoyu/go-prompt-resolver"
 )
 
 //ShowCmd cmd "show" action
